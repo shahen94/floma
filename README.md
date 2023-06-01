@@ -1,4 +1,4 @@
-# Floma CLI tool
+# Floma CLI tool [![Build](https://github.com/shahen94/floma/actions/workflows/build.yml/badge.svg)](https://github.com/shahen94/floma/actions/workflows/build.yml)
 Run multiple processes using one command
 
 
