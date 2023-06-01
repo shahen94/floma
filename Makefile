@@ -9,5 +9,4 @@ build:
 	@echo "Building..."
 	@go build -o bin/floma cmd/floma/main.go
 run:
-	@echo "Running..."
 	@go run cmd/floma/main.go --config floma.example.yml
