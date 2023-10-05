@@ -17,15 +17,26 @@ type FlomaProcessor struct {
 
 // execute executes the command.
 func (p *FlomaProcessor) execute() {
+	path, err := os.Getwd()
+
+	if err != nil {
+		p.signal <- err
+		return
+	}
+
+	if p.Command.Dir != nil {
+		path = *p.Command.Dir
+	}
+
 	cmd := exec.Cmd{
-		Path: *p.Command.Dir,
+		Path: path,
 		Args: p.Command.Args,
 		Env:  p.Command.Environment,
 	}
 
 	p.process = cmd.Process
 
-	err := cmd.Start()
+	err = cmd.Start()
 
 	p.signal <- err
 }

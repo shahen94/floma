@@ -2,6 +2,7 @@ package floma
 
 import (
 	"strconv"
+	"sync"
 
 	"github.com/shahen94/floma/domain"
 	"github.com/shahen94/floma/domain/parser"
@@ -12,6 +13,7 @@ type FlomaRunner struct {
 	config     *parser.Config
 	processors []processorWatcher
 	signal     chan parser.Command
+	wg         sync.WaitGroup
 }
 
 type processorWatcher struct {
@@ -25,6 +27,7 @@ func (r *FlomaRunner) Run(config parser.Config) error {
 	(*r.logger).WithSpinner().Info("Running floma...", "Spawning processes count: "+strconv.Itoa(len(config.Commands)))
 
 	for _, command := range config.Commands {
+		(*r.logger).Info("Spawning process: " + *command.Name)
 		processor := NewFlomaProcessor()
 		signal := make(chan error)
 
@@ -34,9 +37,12 @@ func (r *FlomaRunner) Run(config parser.Config) error {
 		})
 
 		go processor.Start(command, signal)
+		r.wg.Add(1)
 	}
 
 	go r.Watch()
+
+	r.wg.Wait()
 
 	return nil
 }
@@ -44,6 +50,7 @@ func (r *FlomaRunner) Run(config parser.Config) error {
 func (r *FlomaRunner) Watch() {
 	for _, watcher := range r.processors {
 		err := <-watcher.signal
+		r.wg.Done()
 		if err != nil {
 			(*r.logger).Error(err.Error())
 		} else {
@@ -64,6 +71,7 @@ func NewFlomaRunner() domain.Runner {
 
 	runner := &FlomaRunner{
 		signal: signal,
+		wg:     sync.WaitGroup{},
 	}
 
 	runner.UseLogger(logger)
